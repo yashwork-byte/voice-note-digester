@@ -7,6 +7,10 @@ q ?=
 synth-data:
 	uv run --group synth python scripts/synthesize_eval_data.py $(args)
 
+# Generate the fine-tuning dataset (deterministic; D018).
+train-data:
+	uv run python scripts/generate_training_data.py
+
 transcribe:
 	uv run --group stt python -m voice_digester.stt $(audio) $(lang)
 

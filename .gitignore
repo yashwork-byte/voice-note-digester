@@ -11,9 +11,12 @@ __pycache__/
 .env
 .env.local
 
-# Local data (synthesized audio can get large)
+# Local data (synthesized audio can get large; training data regenerates
+# deterministically from scripts/generate_training_data.py)
 data/eval_audio/
 data/processed/
+data/train/
+data/notes.db
 
 # macOS
 .DS_Store

@@ -1,0 +1,15 @@
+{
+  "note_id": "synth-hi-001",
+  "language": "hi",
+  "register": "family-event-planning",
+  "sender": "Papa",
+  "script": "हैलो बेटा, सुनो, शादी की तैयारी के बारे में बात करनी थी। शुक्रवार तक हॉल वाले को एडवांस दे देना, नहीं तो डेट निकल जाएगी। और हाँ, मम्मी कह रही थी कि हलवाई से मेन्यू भी इसी हफ्ते फाइनल कर लेना। बाकी सब ठीक है, दादी की तबीयत भी अब पहले से बेहतर है।",
+  "gold": {
+    "summary": "Papa asks to pay the wedding hall advance by Friday and to finalize the caterer's menu this week; he also shares that grandmother's health is improving.",
+    "translation": "Hello beta, listen, I wanted to talk about the wedding preparations. Give the hall owner the advance by Friday, otherwise we'll lose the date. And yes, Mummy was saying to also finalize the menu with the caterer this week. Everything else is fine, and Dadi's health is better than before now.",
+    "action_items": [
+      {"task": "Pay the advance to the hall owner", "due": "by Friday", "confidence": "confirmed"},
+      {"task": "Finalize the menu with the caterer", "due": "this week", "confidence": "confirmed"}
+    ]
+  }
+}

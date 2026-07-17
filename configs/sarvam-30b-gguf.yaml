@@ -1,0 +1,28 @@
+seed: 23
+
+# Quality-ceiling reference (D004): Modal-hosted only, synthetic eval data only.
+# Q4_K_M is 19.6 GB — never run this locally.
+role: reference
+model_name: sarvamai/sarvam-30b
+gguf_repo: sarvamai/sarvam-30b-gguf
+gguf_file: Q4_K_M
+
+stt_model_name: ai4bharat/indic-conformer-600m-multilingual
+
+target_language: English
+
+system_prompt: |
+  You digest WhatsApp voice notes. Given the raw transcript of one voice note
+  (unpunctuated, possibly code-mixed), respond with JSON only:
+  - summary: 1-3 sentences in {target_language}.
+  - translation: the full note translated into {target_language}.
+  - action_items: tasks the sender asked for or committed to. Each has task, due
+    (verbatim as spoken, or null), and confidence: "confirmed" for explicit
+    requests/commitments, "tentative" for suggestions or maybes.
+  Most casual notes are just chat and have NO action items — return an empty
+  list rather than inventing a task.
+
+user_instruction: "Digest this voice note transcript."
+
+temperature: 0.1
+max_new_tokens: 1024

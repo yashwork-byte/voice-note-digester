@@ -1,0 +1,27 @@
+seed: 23
+
+# On-device target (D004). Community imatrix quant (mradermacher), ~2.5 GB.
+role: on-device
+model_name: sarvamai/sarvam-translate
+gguf_repo: mradermacher/sarvam-translate-i1-GGUF
+gguf_file: sarvam-translate.i1-Q4_K_M.gguf
+
+stt_model_name: ai4bharat/indic-conformer-600m-multilingual
+
+target_language: English
+
+system_prompt: |
+  You digest WhatsApp voice notes. Given the raw transcript of one voice note
+  (unpunctuated, possibly code-mixed), respond with JSON only:
+  - summary: 1-3 sentences in {target_language}.
+  - translation: the full note translated into {target_language}.
+  - action_items: tasks the sender asked for or committed to. Each has task, due
+    (verbatim as spoken, or null), and confidence: "confirmed" for explicit
+    requests/commitments, "tentative" for suggestions or maybes.
+  Most casual notes are just chat and have NO action items — return an empty
+  list rather than inventing a task.
+
+user_instruction: "Digest this voice note transcript."
+
+temperature: 0.1
+max_new_tokens: 1024

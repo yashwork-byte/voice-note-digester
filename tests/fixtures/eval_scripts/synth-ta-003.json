@@ -1,0 +1,12 @@
+{
+  "note_id": "synth-ta-003",
+  "language": "ta",
+  "register": "family-pure-chat",
+  "sender": "Amma",
+  "script": "என்னடா, சாப்பிட்டியா? நேத்து இங்க மழை ரொம்ப பெஞ்சது, வீடு எல்லாம் நல்லா இருக்கு, கவலைப்படாத. நான் இப்போதான் கோயில்லேர்ந்து வந்தேன். அப்பா டிவி பார்த்துட்டு இருக்காரு. சரி, ராத்திரி பேசலாம்.",
+  "gold": {
+    "summary": "Amma checks in with casual family news — heavy rain yesterday but the house is fine, she just returned from the temple, Appa is watching TV — and says they'll talk at night. No tasks.",
+    "translation": "Hey, did you eat? It rained really heavily here yesterday, but the house is all fine, don't worry. I just got back from the temple. Appa is watching TV. Okay, let's talk at night.",
+    "action_items": []
+  }
+}

@@ -1,0 +1,35 @@
+seed: 23
+
+# D004 amendment candidate: Sarvam-Translate can't carry the combined call
+# (translation fine-tune overwrote instruction following — see D015). Gemma-3
+# -4B-it is its base model: a general instruction-follower with multilingual
+# coverage. If its translation chrF is close to Sarvam's native quality, the
+# single-call architecture (D005) survives with one model swap.
+role: on-device
+model_name: google/gemma-3-4b-it
+gguf_repo: ggml-org/gemma-3-4b-it-GGUF
+gguf_file: gemma-3-4b-it-Q4_K_M.gguf
+
+stt_model_name: ai4bharat/indic-conformer-600m-multilingual
+
+target_language: English
+
+# Prompt v1 — the shipping default (D016): lowest hallucination rate (0.05),
+# strongest imperative F1. Weak on tentative/implicit recall — that gap is the
+# fine-tuning target, not a prompting target (v2 experiment: see
+# gemma-3-4b-it-promptv2.yaml; it traded hallucinations for recall).
+system_prompt: |
+  You digest WhatsApp voice notes. Given the raw transcript of one voice note
+  (unpunctuated, possibly code-mixed), respond with JSON only:
+  - summary: 1-3 sentences in {target_language}.
+  - translation: the full note translated into {target_language}.
+  - action_items: tasks the sender asked for or committed to. Each has task, due
+    (verbatim as spoken, or null), and confidence: "confirmed" for explicit
+    requests/commitments, "tentative" for suggestions or maybes.
+  Most casual notes are just chat and have NO action items — return an empty
+  list rather than inventing a task.
+
+user_instruction: "Digest this voice note transcript."
+
+temperature: 0.1
+max_new_tokens: 1024

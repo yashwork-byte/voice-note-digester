@@ -1,0 +1,15 @@
+{
+  "note_id": "synth-hien-002",
+  "language": "hi-en",
+  "register": "friends-trip-planning",
+  "sender": "Rohan",
+  "script": "Yaar sun na, next month wali trip ke liye soch raha tha, maybe hum Goa ki jagah Gokarna try kar sakte hain, thoda sasta bhi padega aur crowd bhi kam hoga. Abhi kuch book mat karna, pehle baaki sab se pooch lete hain. Waise Priya ka kya scene hai, aa rahi hai ki nahin?",
+  "gold": {
+    "summary": "Rohan floats the idea of Gokarna instead of Goa for next month's trip since it's cheaper and less crowded, says not to book anything until the others are asked, and wonders whether Priya is coming.",
+    "translation": "Hey, listen, I was thinking about next month's trip — maybe we could try Gokarna instead of Goa, it'd be a bit cheaper and less crowded too. Don't book anything yet, let's ask everyone else first. By the way, what's the deal with Priya, is she coming or not?",
+    "action_items": [
+      {"task": "Consider Gokarna instead of Goa for the trip", "due": "next month", "confidence": "tentative"},
+      {"task": "Ask the rest of the group before booking anything", "due": null, "confidence": "confirmed"}
+    ]
+  }
+}

@@ -16,15 +16,17 @@ from .schema import NoteDigest
 
 
 @lru_cache(maxsize=1)
-def _llama(gguf_repo: str, gguf_file: str):
-    # hf_hub_download falls back to the local cache when offline;
-    # Llama.from_pretrained does not (it queries the HF API first).
-    from huggingface_hub import hf_hub_download
+def _llama(gguf_repo: str | None, gguf_file: str | None, gguf_path: str | None = None):
     from llama_cpp import Llama
 
-    model_path = hf_hub_download(gguf_repo, gguf_file)
+    if gguf_path is None:
+        # hf_hub_download falls back to the local cache when offline;
+        # Llama.from_pretrained does not (it queries the HF API first).
+        from huggingface_hub import hf_hub_download
+
+        gguf_path = hf_hub_download(gguf_repo, gguf_file)
     return Llama(
-        model_path=model_path,
+        model_path=gguf_path,
         n_ctx=4096,
         n_gpu_layers=-1,  # Metal on the dev Mac; harmless no-op on CPU-only builds
         verbose=False,
@@ -32,7 +34,7 @@ def _llama(gguf_repo: str, gguf_file: str):
 
 
 def digest(transcript: str, config: DigestConfig) -> NoteDigest:
-    llm = _llama(config.gguf_repo, config.gguf_file)
+    llm = _llama(config.gguf_repo, config.gguf_file, config.gguf_path)
     out = llm.create_chat_completion(
         messages=[
             {"role": "system", "content": config.rendered_system_prompt()},

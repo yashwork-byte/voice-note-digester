@@ -1,0 +1,18 @@
+seed: 23
+
+base_model: google/gemma-3-4b-it
+# Prompts come from the shipping digest config so train and serve match (D019).
+digest_config_file: gemma-3-4b-it.yaml
+
+lora_r: 16
+lora_alpha: 32
+lora_dropout: 0.05
+lora_target_modules: [q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj]
+
+learning_rate: 2.0e-4
+num_train_epochs: 3
+batch_size: 4
+gradient_accumulation_steps: 4
+warmup_ratio: 0.1
+weight_decay: 0.01
+logging_steps: 10

@@ -1,0 +1,33 @@
+seed: 23
+
+# The fine-tuned on-device model (D019): LoRA-trained on the D018 set, merged
+# and quantized by export_gguf.py. gguf_path is a Modal-volume path, so this
+# config evaluates on Modal; for on-device/local use, download the file and
+# point gguf_path at the local copy.
+role: on-device
+model_name: google/gemma-3-4b-it
+gguf_repo: null
+gguf_file: null
+gguf_path: /vol/gguf/gemma-3-4b-it-ft-Q4_K_M.gguf
+
+stt_model_name: ai4bharat/indic-conformer-600m-multilingual
+
+target_language: English
+
+# Prompts identical to gemma-3-4b-it.yaml (v1) — the model was trained with
+# them (D019); do not let these drift from the training config's source.
+system_prompt: |
+  You digest WhatsApp voice notes. Given the raw transcript of one voice note
+  (unpunctuated, possibly code-mixed), respond with JSON only:
+  - summary: 1-3 sentences in {target_language}.
+  - translation: the full note translated into {target_language}.
+  - action_items: tasks the sender asked for or committed to. Each has task, due
+    (verbatim as spoken, or null), and confidence: "confirmed" for explicit
+    requests/commitments, "tentative" for suggestions or maybes.
+  Most casual notes are just chat and have NO action items — return an empty
+  list rather than inventing a task.
+
+user_instruction: "Digest this voice note transcript."
+
+temperature: 0.1
+max_new_tokens: 1024

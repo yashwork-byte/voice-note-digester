@@ -17,11 +17,12 @@ asr-round-trip:
 digest:
 	uv run --group digest python -m voice_digester.digest "$(text)"
 
-index:
-	uv run python -m voice_digester.vector_store
+# Build data/notes.db from saved digest-eval predictions (no model runs).
+ingest:
+	uv run --group store python -m voice_digester.ingest
 
 search:
-	uv run python -m voice_digester.search "$(q)"
+	uv run --group store python -m voice_digester.search "$(q)"
 
 # D004/D015 validation, on Modal. source=script isolates digest quality;
 # source=transcript is end-to-end (includes STT errors).

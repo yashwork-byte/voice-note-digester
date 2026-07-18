@@ -17,6 +17,10 @@ data/eval_audio/
 data/processed/
 data/train/
 data/notes.db
+data/models/
 
 # macOS
 .DS_Store
+
+# Personal design-decision journal — local only, never push
+decisions.md

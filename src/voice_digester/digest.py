@@ -27,7 +27,7 @@ def _llama(gguf_repo: str | None, gguf_file: str | None, gguf_path: str | None =
         gguf_path = hf_hub_download(gguf_repo, gguf_file)
     return Llama(
         model_path=gguf_path,
-        n_ctx=4096,
+        n_ctx=2048,  # prompts are ~700 tokens; smaller KV cache eases 8 GB machines
         n_gpu_layers=-1,  # Metal on the dev Mac; harmless no-op on CPU-only builds
         verbose=False,
     )

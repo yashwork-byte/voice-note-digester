@@ -44,7 +44,7 @@ def warmup():
             from voice_digester.stt import _model
 
             _classifier()
-            _model(True)
+            _model()
             digest_core("नमस्ते", config(), sender="warmup")
             print("warmup complete — models resident, prompt cache primed")
         except Exception as e:
@@ -86,7 +86,7 @@ async def create_note(audio: UploadFile, sender: str = Form(...)):
         f.flush()
         wav = decode_audio(Path(f.name))
     language = detect(wav)
-    transcript = transcribe_wav(wav, language, quantized=True)
+    transcript = transcribe_wav(wav, language)
     core = digest_core(transcript, config(), sender=sender)
 
     conn = db()

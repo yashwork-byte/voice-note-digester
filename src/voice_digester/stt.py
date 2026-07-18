@@ -32,31 +32,49 @@ def decode_audio(audio_path: Path):
     return torch.from_numpy(np.frombuffer(raw, dtype=np.float32).copy()).unsqueeze(0)
 
 
-@lru_cache(maxsize=2)
-def _model(quantized: bool = False):
+def _int8_dir() -> Path | None:
+    """Local int8-ONNX copy built by scripts/quantize_stt.py (D023). The repo
+    runs on ONNX internally, so quantization happens at the ONNX level —
+    torch-level dynamic quantization was a verified no-op."""
+    candidate = Path(__file__).resolve().parents[2] / "data" / "models" / "indic-conformer-int8"
+    return candidate if (candidate / "assets" / "encoder.onnx").exists() else None
+
+
+def _allow_local_snapshots() -> None:
+    """The repo's remote code calls snapshot_download unconditionally, so a
+    local model directory crashes it. Shim: an existing local path is returned
+    as-is. Removable once the int8 copy lives in a HF repo of our own."""
+    import huggingface_hub
+
+    original = huggingface_hub.snapshot_download
+
+    def patched(repo_id=None, **kwargs):
+        if repo_id and Path(str(repo_id)).exists():
+            return str(repo_id)
+        return original(repo_id=repo_id, **kwargs)
+
+    huggingface_hub.snapshot_download = patched
+
+
+@lru_cache(maxsize=1)
+def _model():
     from transformers import AutoModel
 
-    model = AutoModel.from_pretrained(STT_MODEL, trust_remote_code=True)
-    if quantized:
-        # Dynamic int8 on the Linear layers (D023). inplace: the remote code
-        # holds an unpicklable onnxruntime session, so no deepcopy. WER impact
-        # verified against the eval scripts before adoption.
-        import torch
-
-        torch.ao.quantization.quantize_dynamic(model, {torch.nn.Linear}, inplace=True)
-    return model
+    source = _int8_dir() or STT_MODEL
+    if source != STT_MODEL:
+        _allow_local_snapshots()
+    return AutoModel.from_pretrained(str(source), trust_remote_code=True)
 
 
-def transcribe_wav(wav, language: str, decoding: str = "ctc", quantized: bool = False) -> str:
+def transcribe_wav(wav, language: str, decoding: str = "ctc") -> str:
     """`wav` is a mono 16 kHz float32 tensor [1, T] (see decode_audio)."""
     lang = STT_LANGUAGE.get(language, language)
-    return _model(quantized)(wav, lang, decoding)
+    return _model()(wav, lang, decoding)
 
 
-def transcribe(audio_path: Path, language: str, decoding: str = "ctc",
-               quantized: bool = False) -> str:
+def transcribe(audio_path: Path, language: str, decoding: str = "ctc") -> str:
     """`language` is an eval-set tag ("hi", "hi-en", "ta", "bn") or a raw model code."""
-    return transcribe_wav(decode_audio(audio_path), language, decoding, quantized)
+    return transcribe_wav(decode_audio(audio_path), language, decoding)
 
 
 if __name__ == "__main__":

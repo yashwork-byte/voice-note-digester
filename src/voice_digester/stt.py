@@ -32,22 +32,31 @@ def decode_audio(audio_path: Path):
     return torch.from_numpy(np.frombuffer(raw, dtype=np.float32).copy()).unsqueeze(0)
 
 
-@lru_cache(maxsize=1)
-def _model():
+@lru_cache(maxsize=2)
+def _model(quantized: bool = False):
     from transformers import AutoModel
 
-    return AutoModel.from_pretrained(STT_MODEL, trust_remote_code=True)
+    model = AutoModel.from_pretrained(STT_MODEL, trust_remote_code=True)
+    if quantized:
+        # Dynamic int8 on the Linear layers (D023). inplace: the remote code
+        # holds an unpicklable onnxruntime session, so no deepcopy. WER impact
+        # verified against the eval scripts before adoption.
+        import torch
+
+        torch.ao.quantization.quantize_dynamic(model, {torch.nn.Linear}, inplace=True)
+    return model
 
 
-def transcribe_wav(wav, language: str, decoding: str = "ctc") -> str:
+def transcribe_wav(wav, language: str, decoding: str = "ctc", quantized: bool = False) -> str:
     """`wav` is a mono 16 kHz float32 tensor [1, T] (see decode_audio)."""
     lang = STT_LANGUAGE.get(language, language)
-    return _model()(wav, lang, decoding)
+    return _model(quantized)(wav, lang, decoding)
 
 
-def transcribe(audio_path: Path, language: str, decoding: str = "ctc") -> str:
+def transcribe(audio_path: Path, language: str, decoding: str = "ctc",
+               quantized: bool = False) -> str:
     """`language` is an eval-set tag ("hi", "hi-en", "ta", "bn") or a raw model code."""
-    return transcribe_wav(decode_audio(audio_path), language, decoding)
+    return transcribe_wav(decode_audio(audio_path), language, decoding, quantized)
 
 
 if __name__ == "__main__":

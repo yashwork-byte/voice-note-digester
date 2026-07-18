@@ -48,7 +48,7 @@ def evaluate_note(note, text: str, config: DigestConfig) -> dict:
 
     row = {"note_id": note.note_id, "language": note.language, "phrasing": note.phrasing}
     try:
-        pred = digest(text, config)
+        pred = digest(text, config, sender=note.sender)
     except Exception as e:
         return row | {"parse_ok": False, "error": str(e)[:200], "ai_precision": 0.0,
                       "ai_recall": 0.0, "ai_f1": 0.0, "confidence_acc": None,

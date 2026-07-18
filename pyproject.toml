@@ -22,9 +22,11 @@ stt = ["torch>=2.0", "torchaudio>=2.0", "transformers>=4.40", "numpy>=1.26", "on
 digest = ["llama-cpp-python>=0.3", "huggingface_hub>=0.23", "sacrebleu>=2.4"]
 # Embeddings for ingest/search (MiniLM, 22M params — light enough for local).
 store = ["sentence-transformers>=3.0"]
-# Live demo UI backend (heavy models stay in the deployed Modal service).
-demo = ["fastapi>=0.110", "uvicorn>=0.29", "python-multipart>=0.0.9", "modal>=0.64",
-        "sentence-transformers>=3.0"]
+# Live demo backend — ALL inference local (D023): STT + LID + digest + embed.
+demo = ["fastapi>=0.110", "uvicorn>=0.29", "python-multipart>=0.0.9",
+        "sentence-transformers>=3.0", "llama-cpp-python>=0.3", "huggingface_hub>=0.23",
+        "torch>=2.0", "torchaudio>=2.0", "transformers>=4.40", "numpy>=1.26",
+        "onnx", "onnxruntime", "speechbrain>=1.0"]
 eval = ["modal>=0.64"]
 
 [build-system]

@@ -123,6 +123,19 @@ def query_action_items(db: sqlite3.Connection, embedding: list[float], top_k: in
           "due": r[4], "confidence": r[5], "distance": r[6]} for r in rows], sender, top_k)
 
 
+def update_translation(db: sqlite3.Connection, note_id: str, text: str) -> None:
+    db.execute("UPDATE notes SET translation = ? WHERE note_id = ?", (text, note_id))
+    db.commit()
+
+
+def get_note(db: sqlite3.Connection, note_id: str) -> dict | None:
+    row = db.execute(
+        "SELECT note_id, sender, transcript, translation FROM notes WHERE note_id = ?",
+        (note_id,)).fetchone()
+    return {"note_id": row[0], "sender": row[1], "transcript": row[2],
+            "translation": row[3]} if row else None
+
+
 def list_notes(db: sqlite3.Connection, limit: int = 20) -> list[dict]:
     rows = db.execute(
         "SELECT note_id, sender, note_date, language, summary FROM notes"

@@ -64,16 +64,46 @@ def fine_tune(config: TrainingConfig, prompts: DigestConfig):
 
     system = prompts.rendered_system_prompt()
 
+    # Output-format variants (D023): each sample deterministically trains one of
+    # full / core (no translation) / translation-only, with the SAME instruction
+    # strings the runtime uses (imported — no skew possible).
+    from hashlib import md5
+
+    from .digest import CORE_INSTRUCTION_SUFFIX, TRANSLATION_INSTRUCTION
+
+    def variant_of(sample) -> str:
+        h = int(md5(sample["note_id"].encode()).hexdigest(), 16) % 10
+        return "full" if h < 5 else ("core" if h < 8 else "translation")
+
+    def instruction_of(variant: str) -> str:
+        if variant == "core":
+            return prompts.user_instruction + CORE_INSTRUCTION_SUFFIX
+        if variant == "translation":
+            return TRANSLATION_INSTRUCTION.format(target_language=prompts.target_language)
+        return prompts.user_instruction
+
+    def target_of(sample, variant: str) -> str:
+        gold = sample["gold"]
+        if variant == "core":
+            gold = {"summary": gold["summary"], "action_items": gold["action_items"]}
+        elif variant == "translation":
+            gold = {"translation": gold["translation"]}
+        return json.dumps(gold, ensure_ascii=False)
+
     def prompt_messages(sample):
+        # "From:" line mirrors digest() exactly (D022) — sender is in the input,
+        # so summaries naming the sender are grounded, not guessed.
         return [
             {"role": "system", "content": system},
-            {"role": "user", "content": f"{prompts.user_instruction}\n\n{sample['transcript']}"},
+            {"role": "user",
+             "content": f"{instruction_of(variant_of(sample))}\n\n"
+                        f"From: {sample['sender']}\n{sample['transcript']}"},
         ]
 
     def collate(samples):
         conversations = [
             prompt_messages(s)
-            + [{"role": "assistant", "content": json.dumps(s["gold"], ensure_ascii=False)}]
+            + [{"role": "assistant", "content": target_of(s, variant_of(s))}]
             for s in samples
         ]
         batch = tokenizer.apply_chat_template(

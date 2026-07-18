@@ -216,7 +216,7 @@
         <span class="langbadge" id="r-lang"></span>
         <div class="transcript" id="r-transcript"></div>
         <div class="summary" id="r-summary"></div>
-        <details><summary>Show translation</summary><p id="r-translation"></p></details>
+        <details id="r-tr-details"><summary>Show translation</summary><p id="r-translation"></p></details>
         <div class="chips" id="r-items"></div>
       </div>
     </section>
@@ -317,7 +317,11 @@ function render(note) {
   $("r-lang").textContent = "detected · " + (LANGS[note.language] || note.language);
   $("r-transcript").textContent = note.transcript;
   $("r-summary").textContent = note.digest.summary;
-  $("r-translation").textContent = note.digest.translation;
+  // translation is generated lazily on first open (D023)
+  const det = $("r-tr-details");
+  det.open = false;
+  det.dataset.noteId = note.note_id;
+  $("r-translation").textContent = "";
   const box = $("r-items"); box.innerHTML = "";
   if (!note.digest.action_items.length) {
     box.innerHTML = '<div class="nothing">No action items — <b>just chat</b>, and the model said so.</div>';
@@ -333,6 +337,17 @@ function render(note) {
   }
   $("result").classList.add("show");
 }
+
+$("r-tr-details").addEventListener("toggle", async e => {
+  const det = e.target, p = $("r-translation");
+  if (det.open && !p.textContent && det.dataset.noteId) {
+    p.textContent = "Translating…";
+    try {
+      const r = await fetch("/api/translation?note_id=" + encodeURIComponent(det.dataset.noteId));
+      p.textContent = (await r.json()).translation;
+    } catch { p.textContent = "Translation failed — close and reopen to retry."; }
+  }
+});
 
 /* ---- search ---- */
 let debounce;

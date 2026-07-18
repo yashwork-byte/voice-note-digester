@@ -21,11 +21,23 @@ class ActionItem(BaseModel):
 
 
 class NoteDigest(BaseModel):
-    """The single combined model output (D005)."""
+    """The single combined model output (D005) — the full trained format."""
 
     summary: str
     translation: str
     action_items: list[ActionItem]  # empty when the note is pure chat (D007)
+
+
+class NoteCore(BaseModel):
+    """Latency-lean subset (D023): grammar-constrained field skip of the trained
+    format — translation is generated lazily on demand."""
+
+    summary: str
+    action_items: list[ActionItem]
+
+
+class NoteTranslation(BaseModel):
+    translation: str
 
 
 class NoteRecord(BaseModel):

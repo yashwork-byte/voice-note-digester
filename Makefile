@@ -21,13 +21,13 @@ fine-tune:
 export-gguf:
 	uv run --group eval modal run --detach -m voice_digester.export_gguf --checkpoint $(checkpoint)
 
-# Deploy the live-demo inference service (persistent Modal app).
-deploy-service:
-	uv run --group eval modal deploy -m voice_digester.service
+# Pull the fine-tuned GGUF from the Modal volume for local inference (once per export).
+fetch-model:
+	uv run --group eval modal volume get --force voice-digester gguf/gemma-3-4b-it-ft-Q4_K_M.gguf data/models/
 
-# Run the live demo UI at http://localhost:8000 (needs deploy-service once).
+# Run the live demo at http://localhost:8000 — ALL inference is local (D023).
 demo:
-	uv run --group demo uvicorn demo.app:app --port 8000
+	uv run --env-file .env --group demo uvicorn demo.app:app --port 8000
 
 transcribe:
 	uv run --group stt python -m voice_digester.stt $(audio) $(lang)

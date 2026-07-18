@@ -21,6 +21,14 @@ fine-tune:
 export-gguf:
 	uv run --group eval modal run --detach -m voice_digester.export_gguf --checkpoint $(checkpoint)
 
+# Deploy the live-demo inference service (persistent Modal app).
+deploy-service:
+	uv run --group eval modal deploy -m voice_digester.service
+
+# Run the live demo UI at http://localhost:8000 (needs deploy-service once).
+demo:
+	uv run --group demo uvicorn demo.app:app --port 8000
+
 transcribe:
 	uv run --group stt python -m voice_digester.stt $(audio) $(lang)
 

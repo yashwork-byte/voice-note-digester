@@ -52,7 +52,9 @@ def _f32(vector: list[float]) -> bytes:
 def connect(path: Path | None = None) -> sqlite3.Connection:
     import sqlite_vec
 
-    db = sqlite3.connect(str(path or db_path()))
+    # check_same_thread=False: the demo's FastAPI serves from a threadpool; the
+    # single shared connection is fine at single-user demo scale.
+    db = sqlite3.connect(str(path or db_path()), check_same_thread=False)
     db.enable_load_extension(True)
     sqlite_vec.load(db)
     db.enable_load_extension(False)
@@ -86,23 +88,48 @@ def add_action_item(db: sqlite3.Connection, record: ActionItemRecord, embedding:
     db.commit()
 
 
-def query_notes(db: sqlite3.Connection, embedding: list[float], top_k: int = 5) -> list[dict]:
+def _sender_filter(rows: list[dict], sender: str | None, top_k: int) -> list[dict]:
+    if sender:
+        rows = [r for r in rows if r["sender"].lower() == sender.lower()]
+    return rows[:top_k]
+
+
+def query_notes(db: sqlite3.Connection, embedding: list[float], top_k: int = 5,
+                sender: str | None = None) -> list[dict]:
+    # Sender is metadata, not semantics (D021): over-fetch the KNN, filter in SQL-land.
+    k = top_k * 6 if sender else top_k
     rows = db.execute(
         "SELECT n.note_id, n.sender, n.note_date, n.summary, v.distance"
         " FROM vec_notes v JOIN notes n ON n.rowid = v.rowid"
         " WHERE v.embedding MATCH ? AND k = ? ORDER BY v.distance",
-        (_f32(embedding), top_k),
+        (_f32(embedding), k),
     ).fetchall()
-    return [{"note_id": r[0], "sender": r[1], "note_date": r[2], "summary": r[3],
-             "distance": r[4]} for r in rows]
+    return _sender_filter(
+        [{"note_id": r[0], "sender": r[1], "note_date": r[2], "summary": r[3],
+          "distance": r[4]} for r in rows], sender, top_k)
 
 
-def query_action_items(db: sqlite3.Connection, embedding: list[float], top_k: int = 5) -> list[dict]:
+def query_action_items(db: sqlite3.Connection, embedding: list[float], top_k: int = 5,
+                       sender: str | None = None) -> list[dict]:
+    k = top_k * 6 if sender else top_k
     rows = db.execute(
         "SELECT a.note_id, a.sender, a.note_date, a.task, a.due, a.confidence, v.distance"
         " FROM vec_action_items v JOIN action_items a ON a.rowid = v.rowid"
         " WHERE v.embedding MATCH ? AND k = ? ORDER BY v.distance",
-        (_f32(embedding), top_k),
+        (_f32(embedding), k),
     ).fetchall()
-    return [{"note_id": r[0], "sender": r[1], "note_date": r[2], "task": r[3],
-             "due": r[4], "confidence": r[5], "distance": r[6]} for r in rows]
+    return _sender_filter(
+        [{"note_id": r[0], "sender": r[1], "note_date": r[2], "task": r[3],
+          "due": r[4], "confidence": r[5], "distance": r[6]} for r in rows], sender, top_k)
+
+
+def list_notes(db: sqlite3.Connection, limit: int = 20) -> list[dict]:
+    rows = db.execute(
+        "SELECT note_id, sender, note_date, language, summary FROM notes"
+        " ORDER BY rowid DESC LIMIT ?", (limit,)).fetchall()
+    return [{"note_id": r[0], "sender": r[1], "note_date": r[2], "language": r[3],
+             "summary": r[4]} for r in rows]
+
+
+def senders(db: sqlite3.Connection) -> list[str]:
+    return [r[0] for r in db.execute("SELECT DISTINCT sender FROM notes ORDER BY sender")]

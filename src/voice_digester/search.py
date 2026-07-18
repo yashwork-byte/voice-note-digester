@@ -12,13 +12,15 @@ import sqlite3
 from . import vector_store
 
 
-def search(query: str, top_k: int = 5, db: sqlite3.Connection | None = None) -> list[dict]:
+def search(query: str, top_k: int = 5, db: sqlite3.Connection | None = None,
+           sender: str | None = None) -> list[dict]:
     from .embed import embed
 
     q = embed([query])[0]
     db = db or vector_store.connect()
-    results = [{"kind": "note", **r} for r in vector_store.query_notes(db, q, top_k)]
-    results += [{"kind": "task", **r} for r in vector_store.query_action_items(db, q, top_k)]
+    results = [{"kind": "note", **r} for r in vector_store.query_notes(db, q, top_k, sender)]
+    results += [{"kind": "task", **r}
+                for r in vector_store.query_action_items(db, q, top_k, sender)]
     return sorted(results, key=lambda r: r["distance"])
 
 

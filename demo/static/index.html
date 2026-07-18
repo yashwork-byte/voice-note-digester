@@ -101,7 +101,7 @@
     color: var(--txt); border-radius: 14px; padding: 12px 16px; font-size: 14.5px; outline: none;
     transition: border-color .2s; }
   .sender-row input:focus { border-color: rgba(167,139,250,.6); }
-  .why { color: var(--dim); font-size: 12px; max-width: 240px; line-height: 1.45; }
+  .sender-row { max-width: 380px; }
 
   /* ---- pipeline stages ---- */
   .stages { display: none; gap: 8px; margin-top: 22px; align-items: center; flex-wrap: wrap;
@@ -186,9 +186,6 @@
   <header class="hero">
     <span class="eyebrow"><span class="live"></span> live pipeline · fine-tuned on-device stack</span>
     <h1>Speak once.<br><em>Suno</em> remembers everything.</h1>
-    <p>A WhatsApp-style voice note goes in — <b>IndicConformer</b> transcribes it,
-       a <b>fine-tuned Gemma-3-4B</b> distills the summary, translation and action items,
-       and <b>sqlite-vec</b> makes it all searchable. Language is detected automatically.</p>
   </header>
 
   <div class="cols">
@@ -205,7 +202,6 @@
         <span class="autolang">language · <b>auto-detected</b> from your voice (hi · ta · bn)</span>
         <div class="sender-row">
           <input type="text" id="sender" placeholder="Sender (e.g. Papa)" value="Papa">
-          <span class="why">In WhatsApp the sender comes with the chat — the demo has no chat, so it asks.</span>
         </div>
         <div class="stages" id="stages">
           <span class="stage" id="st0"><span class="dot"></span>Detect + transcribe</span>
@@ -229,7 +225,7 @@
       <h2>Ask your notes</h2>
       <input type="search" id="q" placeholder='"what do I need to do for the wedding"'>
       <div class="filters" id="senders"></div>
-      <div id="results"><div class="empty">Search across summaries and action items — results are labeled by kind.</div></div>
+      <div id="results"></div>
       <div class="recent">
         <h2>Recent notes</h2>
         <div id="recent"></div>

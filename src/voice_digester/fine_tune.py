@@ -22,7 +22,9 @@ VOL = "/vol"
 app = get_app("voice-digester-fine-tune")
 image = (
     get_image()
-    .uv_pip_install("trl>=0.12", "peft>=0.13", "datasets>=2.0", "accelerate>=0.34")
+    # pillow/torchvision: gemma-3-4b-it is multimodal; its processor imports them
+    .uv_pip_install("trl>=0.12", "peft>=0.13", "datasets>=2.0", "accelerate>=0.34",
+                    "pillow", "torchvision")
     .add_local_python_source("voice_digester")
     .add_local_dir("data/train", "/root/data/train")
 )
@@ -44,16 +46,19 @@ def fine_tune(config: TrainingConfig, prompts: DigestConfig):
     import torch
     from datasets import Dataset
     from peft import LoraConfig, get_peft_model
-    from transformers import AutoModelForCausalLM, AutoTokenizer
+    from transformers import AutoModelForImageTextToText, AutoTokenizer
     from trl import SFTConfig, SFTTrainer
 
     tokenizer = AutoTokenizer.from_pretrained(config.base_model)
-    model = AutoModelForCausalLM.from_pretrained(
+    model = AutoModelForImageTextToText.from_pretrained(
         config.base_model, torch_dtype=torch.bfloat16, attn_implementation="eager"
     )
+    # Regex-scope LoRA to the language model — the plain suffix list would also
+    # attach (dead) adapters to the vision tower's q/k/v projections.
+    target_regex = rf".*language_model.*\.({'|'.join(config.lora_target_modules)})$"
     model = get_peft_model(model, LoraConfig(
         r=config.lora_r, lora_alpha=config.lora_alpha, lora_dropout=config.lora_dropout,
-        target_modules=config.lora_target_modules, task_type="CAUSAL_LM",
+        target_modules=target_regex, task_type="CAUSAL_LM",
     ))
     model.print_trainable_parameters()
 

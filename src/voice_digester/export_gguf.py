@@ -23,7 +23,8 @@ app = get_app("voice-digester-export-gguf")
 image = (
     get_image()
     .apt_install("build-essential", "cmake", "git")
-    .uv_pip_install("peft>=0.13", "accelerate>=0.34", "gguf", "sentencepiece")
+    .uv_pip_install("peft>=0.13", "accelerate>=0.34", "gguf", "sentencepiece",
+                    "pillow", "torchvision")
     .run_commands(
         "git clone --depth 1 https://github.com/ggml-org/llama.cpp /opt/llama.cpp",
         "cmake -S /opt/llama.cpp -B /opt/llama.cpp/build -DLLAMA_CURL=OFF",
@@ -46,13 +47,15 @@ def export(checkpoint: str):
     from pathlib import Path
 
     import torch
-    from peft import AutoPeftModelForCausalLM
-    from transformers import AutoTokenizer
+    from peft import PeftConfig, PeftModel
+    from transformers import AutoModelForImageTextToText, AutoTokenizer
 
     ckpt_dir = Path(VOL) / "checkpoints" / checkpoint
     merged_dir = Path(VOL) / "merged" / checkpoint
     print(f"merging {ckpt_dir} ...")
-    model = AutoPeftModelForCausalLM.from_pretrained(ckpt_dir, torch_dtype=torch.bfloat16)
+    base_name = PeftConfig.from_pretrained(ckpt_dir).base_model_name_or_path
+    base = AutoModelForImageTextToText.from_pretrained(base_name, torch_dtype=torch.bfloat16)
+    model = PeftModel.from_pretrained(base, ckpt_dir)
     model = model.merge_and_unload()
     model.save_pretrained(merged_dir)
     AutoTokenizer.from_pretrained(ckpt_dir).save_pretrained(merged_dir)

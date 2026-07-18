@@ -21,7 +21,7 @@ from .eval_data import load_eval_notes
 from .paths import db_path, processed_dir
 from .schema import ActionItemRecord, NoteDigest, NoteRecord
 
-DEFAULT_RESULTS = "digest_eval_gemma-3-4b-it-promptv2_transcript.json"
+DEFAULT_RESULTS = "digest_eval_gemma-3-4b-it-ft_transcript.json"  # the D020 model
 
 
 def main() -> None:

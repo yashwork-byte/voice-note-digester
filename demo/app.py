@@ -41,7 +41,7 @@ def digester():
 
 
 @app.post("/api/notes")
-async def create_note(audio: UploadFile, sender: str = Form(...), language: str = Form(...)):
+async def create_note(audio: UploadFile, sender: str = Form(...), language: str = Form("auto")):
     from voice_digester.embed import embed
 
     payload = await audio.read()
@@ -52,7 +52,7 @@ async def create_note(audio: UploadFile, sender: str = Form(...), language: str 
     count = conn.execute("SELECT COUNT(*) FROM notes").fetchone()[0]
     record = NoteRecord(
         note_id=f"live-{count + 1:04d}", sender=sender, note_date=date.today().isoformat(),
-        language=language, transcript=result["transcript"], digest=digest,
+        language=result["language"], transcript=result["transcript"], digest=digest,
     )
     vector_store.add_note(conn, record, embed([digest.summary])[0])
     for item in digest.action_items:

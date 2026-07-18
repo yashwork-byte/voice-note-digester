@@ -39,10 +39,15 @@ def _model():
     return AutoModel.from_pretrained(STT_MODEL, trust_remote_code=True)
 
 
+def transcribe_wav(wav, language: str, decoding: str = "ctc") -> str:
+    """`wav` is a mono 16 kHz float32 tensor [1, T] (see decode_audio)."""
+    lang = STT_LANGUAGE.get(language, language)
+    return _model()(wav, lang, decoding)
+
+
 def transcribe(audio_path: Path, language: str, decoding: str = "ctc") -> str:
     """`language` is an eval-set tag ("hi", "hi-en", "ta", "bn") or a raw model code."""
-    lang = STT_LANGUAGE.get(language, language)
-    return _model()(decode_audio(audio_path), lang, decoding)
+    return transcribe_wav(decode_audio(audio_path), language, decoding)
 
 
 if __name__ == "__main__":

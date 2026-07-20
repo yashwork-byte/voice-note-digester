@@ -33,10 +33,15 @@ def decode_audio(audio_path: Path):
 
 
 def _int8_dir() -> Path | None:
-    """Local int8-ONNX copy built by scripts/quantize_stt.py (D023). The repo
-    runs on ONNX internally, so quantization happens at the ONNX level —
-    torch-level dynamic quantization was a verified no-op."""
-    candidate = Path(__file__).resolve().parents[2] / "data" / "models" / "indic-conformer-int8"
+    """Local int8-ONNX copy (D023). The repo runs on ONNX internally, so
+    quantization happens at the ONNX level — torch dynamic quant was a no-op.
+    Override the location with STT_INT8_DIR (the Modal web app points it at
+    the volume copy)."""
+    import os
+
+    env = os.environ.get("STT_INT8_DIR")
+    candidate = (Path(env) if env
+                 else Path(__file__).resolve().parents[2] / "data" / "models" / "indic-conformer-int8")
     return candidate if (candidate / "assets" / "encoder.onnx").exists() else None
 
 

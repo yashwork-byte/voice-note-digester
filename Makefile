@@ -21,13 +21,25 @@ fine-tune:
 export-gguf:
 	uv run --group eval modal run --detach -m voice_digester.export_gguf --checkpoint $(checkpoint)
 
-# Pull the fine-tuned GGUF from the Modal volume for local inference (once per export).
+# Pull the fine-tuned GGUF + int8 STT from the Modal volume for local inference.
 fetch-model:
 	uv run --group eval modal volume get --force voice-digester gguf/gemma-3-4b-it-ft-Q4_K_M.gguf data/models/
+	uv run --group eval modal volume get --force voice-digester stt-int8 data/models/indic-conformer-int8
 
 # Run the live demo at http://localhost:8000 — ALL inference is local (D023).
 demo:
 	uv run --env-file .env --group demo uvicorn demo.app:app --port 8000
+
+# Deploy the GPU-backed inference API to Modal (portfolio demo; D024).
+deploy-web:
+	uv run --group eval modal deploy -m voice_digester.web
+
+# Assemble the Vercel frontend bundle pointing at the Modal URL:
+#   make vercel-bundle url=https://<you>--suno-web-fastapi-app.modal.run
+vercel-bundle:
+	rm -rf demo/dist && cp -r demo/static demo/dist
+	printf 'window.SUNO_API = "%s";\n' "$(url)" > demo/dist/config.js
+	@echo "bundle ready in demo/dist — deploy with:  cd demo/dist && vercel --prod"
 
 transcribe:
 	uv run --group stt python -m voice_digester.stt $(audio) $(lang)

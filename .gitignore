@@ -18,6 +18,7 @@ data/processed/
 data/train/
 data/notes.db
 data/models/
+demo/dist/
 
 # macOS
 .DS_Store

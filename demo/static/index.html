@@ -177,6 +177,8 @@
   .recent .hit { animation: none; }
   .empty { color: var(--dim); font-size: 13.5px; padding: 8px 2px; }
 </style>
+<script>window.SUNO_API = "";</script><!-- default: same-origin (local). config.js overrides on Vercel. -->
+<script src="config.js" onerror="void 0"></script>
 </head>
 <body>
 <div class="orbs"><div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div></div>
@@ -237,6 +239,9 @@
 <script>
 const $ = id => document.getElementById(id);
 const LANGS = { "hi": "हिंदी · Hindi", "hi-en": "Hinglish", "ta": "தமிழ் · Tamil", "bn": "বাংলা · Bengali" };
+// API base: empty = same-origin (local `make demo`); config.js overrides it
+// with the Modal URL on the Vercel deploy.
+const API = (window.SUNO_API || "").replace(/\/$/, "");
 let mediaRec = null, chunks = [], audioCtx, analyser, rafId, senderFilter = "";
 
 /* ---- waveform ---- */
@@ -295,7 +300,7 @@ async function submit(blob) {
   fd.append("audio", blob, "note.webm");
   fd.append("sender", $("sender").value || "Unknown");
   try {
-    const res = await fetch("/api/notes", { method: "POST", body: fd });
+    const res = await fetch(API + "/api/notes", { method: "POST", body: fd });
     clearTimeout(t1);
     if (!res.ok) throw new Error(await res.text());
     const note = await res.json();
@@ -343,7 +348,7 @@ $("r-tr-details").addEventListener("toggle", async e => {
   if (det.open && !p.textContent && det.dataset.noteId) {
     p.textContent = "Translating…";
     try {
-      const r = await fetch("/api/translation?note_id=" + encodeURIComponent(det.dataset.noteId));
+      const r = await fetch(API + "/api/translation?note_id=" + encodeURIComponent(det.dataset.noteId));
       p.textContent = (await r.json()).translation;
     } catch { p.textContent = "Translation failed — close and reopen to retry."; }
   }
@@ -355,7 +360,7 @@ $("q").addEventListener("input", () => { clearTimeout(debounce); debounce = setT
 async function doSearch() {
   const q = $("q").value.trim();
   if (!q) { $("results").innerHTML = ""; return; }
-  const url = "/api/search?q=" + encodeURIComponent(q) + (senderFilter ? "&sender=" + encodeURIComponent(senderFilter) : "");
+  const url = API + "/api/search?q=" + encodeURIComponent(q) + (senderFilter ? "&sender=" + encodeURIComponent(senderFilter) : "");
   const hits = await (await fetch(url)).json();
   $("results").innerHTML = hits.length ? "" : '<div class="empty">Nothing matched.</div>';
   hits.forEach((h, i) => {
@@ -371,12 +376,12 @@ async function doSearch() {
   });
 }
 async function refreshSide() {
-  const senders = await (await fetch("/api/senders")).json();
+  const senders = await (await fetch(API + "/api/senders")).json();
   const f = $("senders");
   f.innerHTML = '<button class="fchip' + (senderFilter ? '' : ' on') + '" data-s="">everyone</button>' +
     senders.map(s => `<button class="fchip${s === senderFilter ? " on" : ""}" data-s="${s}">${s}</button>`).join("");
   f.querySelectorAll(".fchip").forEach(b => b.onclick = () => { senderFilter = b.dataset.s; refreshSide(); doSearch(); });
-  const recent = await (await fetch("/api/notes")).json();
+  const recent = await (await fetch(API + "/api/notes")).json();
   $("recent").innerHTML = recent.slice(0, 6).map(n =>
     `<div class="hit"><div class="top"><span class="kind note">${LANGS[n.language] ? LANGS[n.language].split(" ·")[0] : n.language}</span>
      <span class="who">${n.sender} · ${n.note_date}</span></div>

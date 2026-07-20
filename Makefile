@@ -34,12 +34,8 @@ demo:
 deploy-web:
 	uv run --group eval modal deploy -m voice_digester.web
 
-# Assemble the Vercel frontend bundle pointing at the Modal URL:
-#   make vercel-bundle url=https://<you>--suno-web-fastapi-app.modal.run
-vercel-bundle:
-	rm -rf demo/dist && cp -r demo/static demo/dist
-	printf 'window.SUNO_API = "%s";\n' "$(url)" > demo/dist/config.js
-	@echo "bundle ready in demo/dist — deploy with:  cd demo/dist && vercel --prod"
+# Frontend: import this repo into Vercel — vercel.json serves demo/static with
+# config.js already pointing at the deployed Modal backend. No settings needed.
 
 transcribe:
 	uv run --group stt python -m voice_digester.stt $(audio) $(lang)

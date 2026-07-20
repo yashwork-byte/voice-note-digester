@@ -24,7 +24,8 @@ if not Path(_config.gguf_path).exists():  # the yaml points at the Modal volume
         raise SystemExit(f"model not found — run `make fetch-model` (expects {LOCAL_GGUF})")
     _config.gguf_path = str(LOCAL_GGUF)
 
-app = create_api(_config, db_path(), static_dir=Path(__file__).parent / "static")
+app = create_api(_config, db_path(), static_dir=Path(__file__).parent / "static",
+                 local_config_js=True)
 
 
 @app.on_event("startup")

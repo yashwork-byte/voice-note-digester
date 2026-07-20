@@ -31,8 +31,8 @@ def warm_models(config: DigestConfig) -> None:
     digest_core("नमस्ते", config, sender="warmup")
 
 
-def create_api(config: DigestConfig, db_path: str | Path,
-               static_dir: Path | None = None, cors: bool = False) -> FastAPI:
+def create_api(config: DigestConfig, db_path: str | Path, static_dir: Path | None = None,
+               cors: bool = False, local_config_js: bool = False) -> FastAPI:
     app = FastAPI(title="suno — voice-note digester")
     if cors:
         from fastapi.middleware.cors import CORSMiddleware
@@ -98,5 +98,16 @@ def create_api(config: DigestConfig, db_path: str | Path,
         return vector_store.senders(db)
 
     if static_dir is not None:
+        # config.js is committed with the deployed Modal URL (so a bare GitHub
+        # import to Vercel works). Locally, override it to same-origin so
+        # `make demo` hits THIS process, not the cloud. Registered before the
+        # static mount so the route wins.
+        if local_config_js:
+            from fastapi.responses import Response
+
+            @app.get("/config.js")
+            def _config_js():
+                return Response('window.SUNO_API = "";\n', media_type="application/javascript")
+
         app.mount("/", StaticFiles(directory=static_dir, html=True))
     return app

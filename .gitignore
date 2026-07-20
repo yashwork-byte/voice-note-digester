@@ -24,3 +24,6 @@ data/models/
 
 # Personal design-decision journal — local only, never push
 decisions.md
+
+# Claude Code guidance — local only, never push
+CLAUDE.md
